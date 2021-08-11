@@ -13,7 +13,9 @@ import { useTheme } from "@material-ui/core/styles";
 import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/Listitem";
+import ListItemText from "@material-ui/core/ListitemText";
 // import Box from '@material-ui/core/Box';
 // import Container from '@material-ui/core/Container';
 
@@ -100,6 +102,20 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: "transparent",
     },
   },
+  drawer: {
+    backgroundColor: theme.palette.common.arcBlue,
+  },
+  drawerItem: {
+    ...theme.typography.tab,
+    color: "white",
+    opacity: 0.7,
+  },
+  drawerItemEstimate: {
+    backgroundColor: theme.palette.common.arcOrange,
+  },
+  drawerItemSelected: {
+    opacity: 1,
+  },
 }));
 
 export default function Header(props) {
@@ -135,80 +151,58 @@ export default function Header(props) {
   };
 
   const menuOptions = [
-    { name: "Services", link: "/services" },
-    { name: "Custom Software Development", link: "/customsoftware" },
-    { name: "Mobile apps", link: "/mobileapps" },
-    { name: "Website Development", link: "/websites" },
+    { name: "Services", link: "/services", activeIndex: 1, selectedIndex: 0 },
+    {
+      name: "Custom Software Development",
+      link: "/customsoftware",
+      activeIndex: 1,
+      selectedIndex: 1,
+    },
+    {
+      name: "Mobile apps",
+      link: "/mobileapps",
+      activeIndex: 1,
+      selectedIndex: 2,
+    },
+    {
+      name: "Website Development",
+      link: "/websites",
+      activeIndex: 1,
+      selectedIndex: 3,
+    },
+  ];
+  const routes = [
+    { name: "Home", link: "/", activeIndex: 0 },
+    {
+      name: "Services",
+      link: "/services",
+      activeIndex: 1,
+      ariaOwns: anchorEl ? "simple-menu" : undefined,
+      ariaPopup: anchorEl ? "true" : undefined,
+      mouseOver: (event) => handleClick(event),
+    },
+    { name: "The Revolution", link: "/revolution", activeIndex: 2 },
+    { name: "About Us", link: "/about", activeIndex: 3 },
+    { name: "Contact Us", link: "/contact", activeIndex: 4 },
   ];
   useEffect(() => {
-    // make sure values are set correctly
-    // vis a vis url path. The value control
-    // the highlights on nav menu
-    switch (window.location.pathname) {
-      case "/": {
-        if (value !== 0) {
-          setValue(0);
-        }
-        break;
+    [...menuOptions, ...routes].forEach((route) => {
+      switch (window.location.pathname) {
+        case `${route.link}`:
+          if (value !== route.activeIndex) {
+            setValue(route.activeIndex);
+            if (route.selectedIndex && route.selectedIndex !== selectedIndex) {
+              setSelectedIndex(route.selectedIndex);
+            }
+          }
+          break;
+        default:
+          break;
       }
-      case "/services": {
-        if (value !== 1) {
-          setValue(1);
-          setSelectedIndex(0);
-        }
-        break;
-      }
-      case "/customsoftware": {
-        if (value !== 1) {
-          setValue(1);
-          setSelectedIndex(1);
-        }
-        break;
-      }
-      case "/mobileapps": {
-        if (value !== 1) {
-          setValue(1);
-          setSelectedIndex(2);
-        }
-        break;
-      }
-      case "/websites": {
-        if (value !== 1) {
-          setValue(1);
-          setSelectedIndex(3);
-        }
-        break;
-      }
-      case "/revolution": {
-        if (value !== 2) {
-          setValue(2);
-        }
-        break;
-      }
-      case "/about": {
-        if (value !== 3) {
-          setValue(3);
-        }
-        break;
-      }
-      case "/contact": {
-        if (value !== 4) {
-          setValue(4);
-        }
-        break;
-      }
-      case "/estimate": {
-        if (value !== 5) {
-          setValue(5);
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }, [value]);
+    });
+  }, [value, menuOptions, selectedIndex, routes]);
 
-  // drawer jsx element. A swipeable drawer with button that appears 
+  // drawer jsx element. A swipeable drawer with button that appears
   // at certain screen widths
   const drawer = (
     <React.Fragment>
@@ -218,8 +212,54 @@ export default function Header(props) {
         open={openDrawer}
         onClose={() => setOpenDrawer(false)}
         onOpen={() => setOpenDrawer(true)}
+        classes={{ paper: classes.drawer }}
       >
-        example drawer
+        <List disablePadding>
+          {
+            routes.map((route) => {
+              return (
+              
+              <ListItem
+              divider
+              key={`${route}${route.activeIndex}`}
+              button
+              component={Link}
+              to={route.link}
+              className={value === route.activeIndex ? [classes.drawerItem,classes.drawerItemSelected ] : classes.drawerItem }
+              selected={value === route.activeIndex}
+              
+              onClick={() => {
+                setOpenDrawer(false);
+                 setValue(route.activeIndex);
+              }}
+            >
+              <ListItemText className={classes.drawerItem} disableTypography>
+                {route.name}
+              </ListItemText>
+              </ListItem>
+            )})  
+          }
+          <ListItem
+            onClick={() => {
+              setOpenDrawer(false);
+              props.setValue(5);
+            }}
+            divider
+            button
+            component={Link}
+            classes={{
+              root: classes.drawerItemEstimate,
+              selected: classes.drawerItemSelected
+            }}
+            to="/estimate"
+            selected={props.value === 5}
+          >
+            <ListItemText className={classes.drawerItem} disableTypography>
+              Free Estimate
+            </ListItemText>
+          </ListItem>
+          </List>
+         
       </SwipeableDrawer>
       <IconButton
         className={classes.drawerIconContainer}
@@ -239,34 +279,19 @@ export default function Header(props) {
         onChange={handleChange}
         indicatorColor="primary"
       >
-        <Tab className={classes.tab} label="Home" component={Link} to="/" />
-        <Tab
-          onClick={(event) => handleClick(event)}
-          aria-owns={anchorEl ? "simple-menu" : undefined}
-          aria-haspopup={anchorEl ? "true" : undefined}
-          className={classes.tab}
-          label="Services"
-          component={Link}
-          to="/services"
-        />
-        <Tab
-          className={classes.tab}
-          label="The Revolution"
-          component={Link}
-          to="/revolution"
-        />
-        <Tab
-          className={classes.tab}
-          label="About Us"
-          component={Link}
-          to="/about"
-        />
-        <Tab
-          className={classes.tab}
-          label="Contact us"
-          component={Link}
-          to="/contact"
-        />
+      
+        {routes.map((route, index) => (
+          <Tab
+            key={`${route}${index}`}
+            className={classes.tab}
+            component={Link}
+            to={route.link}
+            label={route.name}
+            aria-owns={route.ariaOwns}
+            aria-haspopup={route.ariaPopup}
+            onMouseOver={route.mouseOver}
+          />
+        ))}
       </Tabs>
       <Button
         className={classes.button}
